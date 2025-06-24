@@ -1,0 +1,21 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "next.config.js",
+      "use": "@vercel/next"
+    }
+  ],
+  "functions": {
+    "pages/api/process-image.js": {
+      "maxDuration": 30
+    },
+    "pages/api/download/[filename].js": {
+      "maxDuration": 10
+    }
+  },
+  "env": {
+    "NEXT_PUBLIC_APP_NAME": "UniCleaner",
+    "NEXT_PUBLIC_DEVELOPER": "Unineed"
+  }
+} 
