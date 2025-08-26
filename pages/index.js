@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import Head from 'next/head';
-import { Shield, Upload, Download, Info, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Shield, Upload, Download, Info, CheckCircle, AlertTriangle, Scissors } from 'lucide-react';
 import ImageUploader from '../components/ImageUploader';
 import MetadataDisplay from '../components/MetadataDisplay';
 import ProcessingStatus from '../components/ProcessingStatus';
+import BackgroundRemover from '../components/BackgroundRemover';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
@@ -13,12 +14,27 @@ export default function Home() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [originalMetadata, setOriginalMetadata] = useState(null);
+  
+  // Background removal states
+  const [backgroundRemovedFile, setBackgroundRemovedFile] = useState(null);
+  const [backgroundRemovalPreview, setBackgroundRemovalPreview] = useState(null);
+  const [removeBackground, setRemoveBackground] = useState(false);
 
   const handleFileSelect = (selectedFile) => {
     setFile(selectedFile);
     setResult(null);
     setError(null);
     setOriginalMetadata(null);
+    // Reset background removal states
+    setBackgroundRemovedFile(null);
+    setBackgroundRemovalPreview(null);
+    setRemoveBackground(false);
+  };
+
+  const handleBackgroundRemoved = (processedFile, previewUrl) => {
+    setBackgroundRemovedFile(processedFile);
+    setBackgroundRemovalPreview(previewUrl);
+    setRemoveBackground(true);
   };
 
   const handleProcessImage = async () => {
@@ -29,7 +45,9 @@ export default function Home() {
 
     try {
       const formData = new FormData();
-      formData.append('image', file);
+      // Use background-removed file if available, otherwise use original
+      const imageToProcess = backgroundRemovedFile || file;
+      formData.append('image', imageToProcess);
 
       const response = await fetch('/api/process-image', {
         method: 'POST',
@@ -40,6 +58,11 @@ export default function Home() {
 
       if (!response.ok) {
         throw new Error(data.error || 'Failed to process image');
+      }
+
+      // Add background removal to removed items if it was applied
+      if (backgroundRemovedFile) {
+        data.removedItems = [...(data.removedItems || []), 'Background removed'];
       }
 
       setResult(data);
@@ -66,7 +89,10 @@ export default function Home() {
       const a = document.createElement('a');
       a.style.display = 'none';
       a.href = url;
-      a.download = `cleaned-${file.name}`;
+      // Use descriptive filename based on processing applied
+      const baseFileName = file.name.split('.')[0];
+      const suffix = backgroundRemovedFile ? 'bg-removed-cleaned' : 'cleaned';
+      a.download = `${suffix}-${baseFileName}.jpg`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -81,6 +107,14 @@ export default function Home() {
     setResult(null);
     setError(null);
     setOriginalMetadata(null);
+    // Reset background removal states
+    setBackgroundRemovedFile(null);
+    setBackgroundRemovalPreview(null);
+    setRemoveBackground(false);
+    // Clean up preview URLs
+    if (backgroundRemovalPreview) {
+      URL.revokeObjectURL(backgroundRemovalPreview);
+    }
   };
 
   return (
@@ -105,7 +139,7 @@ export default function Home() {
               UniCleaner
             </h1>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Professional tool to remove metadata, EXIF data, and digital signatures from your images
+              Professional tool to remove metadata, EXIF data, digital signatures, and backgrounds from your images
             </p>
             
             {/* Developer Credits */}
@@ -134,9 +168,18 @@ export default function Home() {
               />
             </div>
 
+            {/* Background Removal Section */}
+            {file && !processing && !result && (
+              <BackgroundRemover
+                originalFile={file}
+                onBackgroundRemoved={handleBackgroundRemoved}
+                disabled={processing}
+              />
+            )}
+
             {/* Processing Status */}
             {processing && (
-              <ProcessingStatus />
+              <ProcessingStatus hasBackgroundRemoval={!!backgroundRemovedFile} />
             )}
 
             {/* Error Display */}
@@ -217,11 +260,16 @@ export default function Home() {
             )}
 
             {/* Features Section */}
-            <div className="grid md:grid-cols-3 gap-6 mt-12">
+            <div className="grid md:grid-cols-4 gap-6 mt-12">
               <div className="text-center p-6">
                 <Shield className="w-12 h-12 text-primary-600 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Complete Metadata Removal</h3>
                 <p className="text-gray-600">Removes EXIF data, color profiles, thumbnails, and all embedded metadata</p>
+              </div>
+              <div className="text-center p-6">
+                <Scissors className="w-12 h-12 text-primary-600 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">AI Background Removal</h3>
+                <p className="text-gray-600">Advanced client-side background removal for professional, clean images</p>
               </div>
               <div className="text-center p-6">
                 <CheckCircle className="w-12 h-12 text-primary-600 mx-auto mb-4" />
@@ -231,7 +279,7 @@ export default function Home() {
               <div className="text-center p-6">
                 <Download className="w-12 h-12 text-primary-600 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Enhanced Output</h3>
-                <p className="text-gray-600">800x800 pixels with enhanced contrast, saturation, and sharpening for optimal results</p>
+                <p className="text-gray-600">900x900 pixels with enhanced contrast, saturation, and sharpening for optimal results</p>
               </div>
             </div>
           </div>

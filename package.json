@@ -19,7 +19,8 @@
     "exifreader": "^4.20.0",
     "piexifjs": "^1.0.6",
     "multer": "^1.4.5-lts.1",
-    "uuid": "^9.0.1"
+    "uuid": "^9.0.1",
+    "@imgly/background-removal": "^1.5.6"
   },
   "devDependencies": {
     "@types/node": "^20",

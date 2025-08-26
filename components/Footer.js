@@ -12,7 +12,7 @@ const Footer = () => {
               <h3 className="font-bold text-lg">UniCleaner</h3>
             </div>
             <p className="text-gray-400 text-sm">
-              Professional tool for removing metadata and digital signatures from images. Developed by Unineed.
+              Professional tool for removing metadata, backgrounds, and digital signatures from images. Developed by Unineed.
             </p>
           </div>
           
@@ -22,6 +22,7 @@ const Footer = () => {
               Privacy & Security
             </h4>
             <ul className="space-y-2 text-sm text-gray-400">
+              <li>• Client-side background removal</li>
               <li>• All processing happens locally</li>
               <li>• No images stored on servers</li>
               <li>• Automatic file cleanup</li>
@@ -35,10 +36,11 @@ const Footer = () => {
               Technical Features
             </h4>
             <ul className="space-y-2 text-sm text-gray-400">
+              <li>• AI-powered background removal</li>
               <li>• EXIF metadata removal</li>
               <li>• Color profile cleaning</li>
               <li>• Digital signature stripping</li>
-              <li>• Enhanced 800x800 output with contrast boost</li>
+              <li>• Enhanced 900x900 output with quality boost</li>
             </ul>
           </div>
           

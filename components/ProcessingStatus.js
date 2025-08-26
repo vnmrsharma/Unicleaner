@@ -1,13 +1,22 @@
 import React from 'react';
-import { Loader2, Shield, Zap, CheckCircle } from 'lucide-react';
+import { Loader2, Shield, Zap, CheckCircle, Scissors } from 'lucide-react';
 
-const ProcessingStatus = () => {
-  const steps = [
+const ProcessingStatus = ({ hasBackgroundRemoval = false }) => {
+  const baseSteps = [
     { icon: <Loader2 className="w-5 h-5" />, text: "Analyzing image metadata..." },
     { icon: <Shield className="w-5 h-5" />, text: "Removing EXIF data..." },
     { icon: <Zap className="w-5 h-5" />, text: "Cleaning digital signatures..." },
     { icon: <CheckCircle className="w-5 h-5" />, text: "Optimizing image quality..." }
   ];
+
+  const backgroundRemovalStep = { 
+    icon: <Scissors className="w-5 h-5" />, 
+    text: "Processing background-removed image..." 
+  };
+
+  const steps = hasBackgroundRemoval 
+    ? [backgroundRemovalStep, ...baseSteps]
+    : baseSteps;
 
   return (
     <div className="card border-blue-200 bg-blue-50">

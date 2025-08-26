@@ -16,9 +16,10 @@ This serverless version of UniCleaner is specifically optimized for deployment w
 
 ### 🛠️ **Features**
 - **Complete Metadata Removal**: EXIF, GPS, timestamps, device info
+- **AI Background Removal**: Client-side background removal using advanced ML models
 - **Digital Signature Cleaning**: Watermarks and embedded signatures
-- **Image Enhancement**: 800x800 output with contrast and saturation boost
-- **Privacy-First**: All processing in serverless functions
+- **Image Enhancement**: 900x900 output with contrast and saturation boost
+- **Privacy-First**: All processing in serverless functions and client-side
 - **Drag & Drop Upload**: Modern React interface
 - **Real-time Processing**: Fast serverless image processing
 
@@ -26,6 +27,7 @@ This serverless version of UniCleaner is specifically optimized for deployment w
 - **Frontend**: Next.js 14 + React 18 + Tailwind CSS
 - **Backend**: Vercel API Routes (serverless functions)
 - **Image Processing**: Sharp + ExifReader + PiexifJS
+- **Background Removal**: @imgly/background-removal (client-side AI)
 - **File Handling**: Multer with memory storage
 - **Deployment**: Vercel (optimized)
 
@@ -37,6 +39,7 @@ Serverless/
 │   ├── Header.js
 │   ├── Footer.js
 │   ├── ImageUploader.js
+│   ├── BackgroundRemover.js
 │   ├── MetadataDisplay.js
 │   └── ProcessingStatus.js
 ├── lib/                 # Utilities
