@@ -36,7 +36,7 @@ const Footer = () => {
               Technical Features
             </h4>
             <ul className="space-y-2 text-sm text-gray-400">
-              <li>• AI-powered background removal</li>
+              <li>• Canvas-based background removal</li>
               <li>• EXIF metadata removal</li>
               <li>• Color profile cleaning</li>
               <li>• Digital signature stripping</li>

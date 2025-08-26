@@ -1,6 +1,5 @@
-import React, { useState, useCallback } from 'react';
-import { removeBackground } from '@imgly/background-removal';
-import { Scissors, Loader2, Eye, EyeOff } from 'lucide-react';
+import React, { useState, useCallback, useEffect } from 'react';
+import { Scissors, Loader2, Eye, EyeOff, AlertCircle } from 'lucide-react';
 
 const BackgroundRemover = ({ 
   originalFile, 
@@ -11,23 +10,82 @@ const BackgroundRemover = ({
   const [processedImage, setProcessedImage] = useState(null);
   const [showComparison, setShowComparison] = useState(false);
   const [error, setError] = useState(null);
+  const [isClient, setIsClient] = useState(false);
+  const [processingReady, setProcessingReady] = useState(false);
+
+  // Ensure this only runs on the client side
+  useEffect(() => {
+    setIsClient(true);
+    setProcessingReady(true);
+  }, []);
+
+  // Simple canvas-based background removal (alpha channel manipulation)
+  const processImageBackground = async (file) => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+
+      img.onload = () => {
+        canvas.width = img.width;
+        canvas.height = img.height;
+
+        // Draw the image
+        ctx.drawImage(img, 0, 0);
+
+        // Get image data
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imageData.data;
+
+        // Simple background removal: make predominantly white/light areas transparent
+        for (let i = 0; i < data.length; i += 4) {
+          const r = data[i];
+          const g = data[i + 1];
+          const b = data[i + 2];
+          
+          // Calculate brightness
+          const brightness = (r + g + b) / 3;
+          
+          // If pixel is predominantly light (white/light gray background), make it transparent
+          if (brightness > 200 && Math.abs(r - g) < 30 && Math.abs(g - b) < 30 && Math.abs(r - b) < 30) {
+            data[i + 3] = 0; // Set alpha to 0 (transparent)
+          } else if (brightness > 180) {
+            // Partially transparent for near-white areas
+            data[i + 3] = Math.max(0, 255 - (brightness - 180) * 3);
+          }
+        }
+
+        // Put the modified image data back
+        ctx.putImageData(imageData, 0, 0);
+
+        // Convert canvas to blob
+        canvas.toBlob((blob) => {
+          if (blob) {
+            resolve(blob);
+          } else {
+            reject(new Error('Failed to process image'));
+          }
+        }, 'image/png');
+      };
+
+      img.onerror = () => reject(new Error('Failed to load image'));
+      img.src = URL.createObjectURL(file);
+    });
+  };
 
   const handleRemoveBackground = useCallback(async () => {
-    if (!originalFile || isProcessing) return;
+    if (!originalFile || isProcessing || !processingReady) return;
 
     setIsProcessing(true);
     setError(null);
 
     try {
-      // Convert file to blob URL for processing
-      const imageUrl = URL.createObjectURL(originalFile);
-      
-      // Remove background using @imgly/background-removal
-      const blob = await removeBackground(imageUrl);
+      // Process the image using canvas-based background removal
+      const blob = await processImageBackground(originalFile);
       
       // Convert blob to file
       const processedFile = new File([blob], `bg-removed-${originalFile.name}`, {
-        type: 'image/png', // Background removal typically outputs PNG for transparency
+        type: 'image/png', // Background removal outputs PNG for transparency
         lastModified: Date.now(),
       });
 
@@ -38,22 +96,20 @@ const BackgroundRemover = ({
       // Notify parent component
       onBackgroundRemoved(processedFile, previewUrl);
       
-      // Clean up the original URL
-      URL.revokeObjectURL(imageUrl);
-      
     } catch (err) {
       console.error('Background removal failed:', err);
       setError(err.message || 'Failed to remove background');
     } finally {
       setIsProcessing(false);
     }
-  }, [originalFile, isProcessing, onBackgroundRemoved]);
+  }, [originalFile, isProcessing, onBackgroundRemoved, processingReady]);
 
   const toggleComparison = () => {
     setShowComparison(!showComparison);
   };
 
-  if (!originalFile) return null;
+  // Don't render on server side to avoid hydration issues
+  if (!isClient || !originalFile) return null;
 
   return (
     <div className="space-y-4">
@@ -65,18 +121,27 @@ const BackgroundRemover = ({
         </h3>
         
         <p className="text-purple-700 mb-4 text-sm">
-          Remove the background from your image for a professional, clean look. 
+          Remove light/white backgrounds from your image for a professional look. 
           This process happens entirely in your browser for maximum privacy.
         </p>
+
+        <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <div className="flex items-start space-x-2">
+            <AlertCircle className="w-4 h-4 text-yellow-600 mt-0.5 flex-shrink-0" />
+            <div className="text-sm text-yellow-800">
+              <p><strong>Best Results:</strong> This feature works best with images that have solid white or light-colored backgrounds. For complex backgrounds, consider using dedicated AI tools.</p>
+            </div>
+          </div>
+        </div>
 
         {!processedImage && !isProcessing && (
           <button
             onClick={handleRemoveBackground}
-            disabled={disabled || isProcessing}
-            className="btn-primary bg-purple-600 hover:bg-purple-700 focus:ring-purple-500"
+            disabled={disabled || isProcessing || !processingReady}
+            className="btn-primary bg-purple-600 hover:bg-purple-700 focus:ring-purple-500 disabled:opacity-50"
           >
             <Scissors className="w-4 h-4 mr-2" />
-            Remove Background
+            {processingReady ? 'Remove Light Background' : 'Preparing...'}
           </button>
         )}
 

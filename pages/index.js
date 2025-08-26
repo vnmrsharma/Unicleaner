@@ -268,8 +268,8 @@ export default function Home() {
               </div>
               <div className="text-center p-6">
                 <Scissors className="w-12 h-12 text-primary-600 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">AI Background Removal</h3>
-                <p className="text-gray-600">Advanced client-side background removal for professional, clean images</p>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Background Removal</h3>
+                <p className="text-gray-600">Client-side background removal for images with light/white backgrounds</p>
               </div>
               <div className="text-center p-6">
                 <CheckCircle className="w-12 h-12 text-primary-600 mx-auto mb-4" />
